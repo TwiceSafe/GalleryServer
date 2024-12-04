@@ -1,7 +1,7 @@
 import uuid
 from pathlib import Path
 
-from jose import jwt
+import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
@@ -74,8 +74,8 @@ def decode_token(token) -> dict:
                       algorithms=[jwt_settings.jwt_algorithm],
                       issuer=jwt_settings.jwt_issuer)
 
-async def get_user_from_token(token: str) -> User:
-    return await get_user_from_token_info(decode_token(token))
+async def get_user_from_token(session: AsyncSession, token: str) -> User:
+    return await get_user_from_token_info(session, decode_token(token))
 
 async def get_user_from_token_info(session: AsyncSession, token_info: dict) -> User:
     try:

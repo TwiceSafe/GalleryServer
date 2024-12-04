@@ -1,5 +1,6 @@
 import uuid
 from pathlib import Path
+from typing import Self
 
 import jwt
 from sqlalchemy import select
@@ -60,6 +61,9 @@ class User(misc.Base):
 
     def __repr__(self) -> str:
         return f"User(user_id={self.user_id})"
+
+    def __eq__(self, other: Self):
+        return self.user_id == other.user_id
 
 
 def decode_token(token) -> dict:

@@ -40,11 +40,11 @@ class User(misc.Base):
         }
         return jwt.encode(payload, jwt_settings.jwt_secret, algorithm=jwt_settings.jwt_algorithm)
 
-    def get_head(self):
-        Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1").mkdir(parents=True, exist_ok=True)
-        if not Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/HEAD").is_file():
+    def get_head(self, repository_name):
+        Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name).mkdir(parents=True, exist_ok=True)
+        if not Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name+"/HEAD").is_file():
             return None
-        return open(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/HEAD", "r").read()
+        return open(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name+"HEAD", "r").read()
 
     async def save(self, session: AsyncSession, new: bool = False):
         try:

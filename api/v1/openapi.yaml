@@ -83,12 +83,18 @@ paths:
                 type: string
       security:
         - jwt: [ 'secret' ]
-  /head:
+  /repository/{repository_name}/head:
     get:
-      summary: Get head commit
+      parameters:
+        - name: repository_name
+          description: Repository name
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         200:
-          description: "Getting head commit success"
+          description: "Getting head success"
           content:
             text/plain:
               schema:

@@ -1,4 +1,5 @@
 import time
+from multiprocessing import Queue
 from typing import Self
 
 from gunicorn.app.wsgiapp import WSGIApplication
@@ -12,6 +13,7 @@ def current_timestamp() -> int:
 
 Base: DeclarativeBase = declarative_base()
 
+data: Queue
 
 class IntEnum(TypeDecorator):
     """
@@ -50,3 +52,6 @@ class StandaloneApplication(WSGIApplication):
         }
         for key, value in config.items():
             self.cfg.set(key.lower(), value)
+
+    def load(self):
+        return self.app_uri

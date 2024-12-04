@@ -1,11 +1,11 @@
 import asyncio
 from pathlib import Path
 
-import uvicorn
 from connexion import AsyncApp, RestyResolver
 
 from classes import user
 from config import get_config
+from misc import StandaloneApplication
 
 config = get_config()
 
@@ -17,4 +17,9 @@ Path(config.data_directory).mkdir(parents=True, exist_ok=True)
 
 if __name__ == "__main__":
     asyncio.run(user.create_db_and_tables())
-    uvicorn.run("main:app", reload=True)
+
+    options = {
+        #"workers": (multiprocessing.cpu_count() * 2) + 1,
+        "worker_class": "uvicorn.workers.UvicornWorker",
+    }
+    StandaloneApplication(f"{Path(__file__).stem}:app", options).run()

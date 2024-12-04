@@ -1,4 +1,5 @@
 import time
+import uuid
 from multiprocessing import Queue
 from typing import Self
 
@@ -13,8 +14,6 @@ def current_timestamp() -> int:
 
 Base: DeclarativeBase = declarative_base()
 
-append_commit_requests: Queue
-append_commit_responses: Queue
 
 class IntEnum(TypeDecorator):
     """
@@ -57,14 +56,36 @@ class StandaloneApplication(WSGIApplication):
     def load(self):
         return self.app_uri
 
-class CommitAppendRequest:
+
+commit_requests_queue: Queue
+commit_responses_queue: Queue
+
+
+class CommitRequest:
     def __init__(self, temp_id: str, user_id: str, repository_name: str, commit: dict):
         self.temp_id = temp_id
         self.user_id = user_id
         self.repository_name = repository_name
         self.commit = commit
 
-class CommitAppendResponse:
-    def __init__(self, temp_id: str, commit_id: str):
+class CommitResponse:
+    def __init__(self, temp_id: str, result: int, commit_id: str):
         self.temp_id = temp_id
+        self.result = result
         self.commit_id = commit_id
+
+
+def handle_incoming_commit(user, repository_name, commit):
+    temp_id = str(uuid.uuid4())
+    commit_requests_queue.put(CommitRequest(temp_id, user.user_id, repository_name, commit))
+    while True:
+        try:
+            response: CommitResponse = commit_responses_queue.get()
+
+            if response.temp_id != temp_id:
+                commit_responses_queue.put(response)
+                continue
+
+            return response.commit_id
+        except:
+            return None

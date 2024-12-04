@@ -22,17 +22,5 @@ async def get(token_info: dict, repository_name: str, commit_id: str):
 async def post(token_info: dict, repository_name: str, commit: dict):
     async with user_db_session_maker() as session:
         user = await get_user_from_token_info(session, token_info)
-
-        temp_id = str(uuid.uuid4())
-        misc.append_commit_requests.put(misc.CommitAppendRequest(temp_id, user.user_id, repository_name, commit))
-        while True:
-            try:
-                queue_item: misc.CommitAppendResponse = misc.append_commit_responses.get()
-
-                if queue_item.temp_id != temp_id:
-                    misc.append_commit_responses.put(queue_item)
-                    continue
-
-                return queue_item.commit_id
-            except:
-                return "error", 500
+        commit_id = misc.handle_incoming_commit(user, repository_name, commit)
+        return commit_id

@@ -101,6 +101,52 @@ paths:
                 type: string
       security:
         - jwt: [ 'secret' ]
+  /repository/{repository_name}/commit:
+    post:
+      parameters:
+        - name: repository_name
+          description: Repository name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-body-name: commit
+        description: Commit data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: "Add new commit"
+          content:
+            text/plain:
+              schema:
+                type: string
+  /repository/{repository_name}/commit/{commit_id}:
+    get:
+      parameters:
+        - name: repository_name
+          description: Repository name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: commit_id
+          description: Commit ID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Commit info"
+          content:
+            text/plain:
+              schema:
+                type: string
 components:
   securitySchemes:
     jwt:

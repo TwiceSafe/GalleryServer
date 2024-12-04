@@ -125,6 +125,8 @@ paths:
             text/plain:
               schema:
                 type: string
+      security:
+        - jwt: [ 'secret' ]
   /repository/{repository_name}/commit/{commit_id}:
     get:
       parameters:
@@ -147,6 +149,8 @@ paths:
             text/plain:
               schema:
                 type: string
+      security:
+        - jwt: [ 'secret' ]
 components:
   securitySchemes:
     jwt:

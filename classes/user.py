@@ -1,3 +1,4 @@
+import json
 import uuid
 from pathlib import Path
 from typing import Self
@@ -45,7 +46,22 @@ class User(misc.Base):
         Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name).mkdir(parents=True, exist_ok=True)
         if not Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name+"/HEAD").is_file():
             return None
-        return open(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name+"HEAD", "r").read()
+        return open(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name+"/HEAD", "r").read()
+
+    def add_commit(self, repository_name: str, commit: dict):
+        Path(get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name).mkdir(
+            parents=True, exist_ok=True)
+
+        commit_id = str(uuid.uuid4())
+        while Path(
+                get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name + "/" + commit_id).is_file():
+            commit_id = str(uuid.uuid4())
+
+        open(
+            get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name + "/" + commit_id,
+            "w").write(json.dumps(commit))
+
+        return commit_id
 
     async def save(self, session: AsyncSession, new: bool = False):
         try:
@@ -84,6 +100,13 @@ async def get_user_from_token(session: AsyncSession, token: str) -> User:
 async def get_user_from_token_info(session: AsyncSession, token_info: dict) -> User:
     try:
         result = await session.execute(select(User).where(User.user_id == token_info["sub"].split(".")[0]))
+        return result.scalars().one()
+    except:
+        raise
+
+async def get_user_from_user_id(session: AsyncSession, user_id: str) -> User:
+    try:
+        result = await session.execute(select(User).where(User.user_id == user_id))
         return result.scalars().one()
     except:
         raise

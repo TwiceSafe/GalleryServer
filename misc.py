@@ -13,7 +13,8 @@ def current_timestamp() -> int:
 
 Base: DeclarativeBase = declarative_base()
 
-data: Queue
+append_commit_requests: Queue
+append_commit_responses: Queue
 
 class IntEnum(TypeDecorator):
     """
@@ -55,3 +56,15 @@ class StandaloneApplication(WSGIApplication):
 
     def load(self):
         return self.app_uri
+
+class CommitAppendRequest:
+    def __init__(self, temp_id: str, user_id: str, repository_name: str, commit: dict):
+        self.temp_id = temp_id
+        self.user_id = user_id
+        self.repository_name = repository_name
+        self.commit = commit
+
+class CommitAppendResponse:
+    def __init__(self, temp_id: str, commit_id: str):
+        self.temp_id = temp_id
+        self.commit_id = commit_id

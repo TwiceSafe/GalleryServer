@@ -16,7 +16,7 @@ jwt_settings = get_jwt_settings()
 
 __user_db_engine = create_async_engine("sqlite+aiosqlite:///"+get_config().data_directory+"/db/users.db", echo=True)
 
-user_db_session_maker = sessionmaker(__user_db_engine, class_=AsyncSession, expire_on_commit=False)
+user_db_session_maker = sessionmaker(__user_db_engine, class_=AsyncSession, expire_on_commit=False)  # TODO: remove expire_on_commit
 
 class UserStatus(misc.IntEnum):
     DELETED_UNSPECIFIED = -1

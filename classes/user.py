@@ -16,7 +16,7 @@ jwt_settings = get_jwt_settings()
 
 __user_db_engine = create_async_engine("sqlite+aiosqlite:///"+get_config().data_directory+"/db/users.db", echo=True)
 
-user_db_session_maker = sessionmaker(__user_db_engine, class_=AsyncSession)
+user_db_session_maker = sessionmaker(__user_db_engine, class_=AsyncSession, expire_on_commit=False)
 
 class UserStatus(misc.IntEnum):
     DELETED_UNSPECIFIED = -1
@@ -27,7 +27,7 @@ class User(misc.Base):
 
     user_id: Mapped[str] = mapped_column(primary_key=True)
     status: Mapped[UserStatus] = mapped_column(misc.IntEnum(UserStatus))
-    username: Mapped[str]
+    username: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
 
     def generate_token(self, device_id: str = None):
@@ -90,3 +90,7 @@ async def get_user_from_username(session: AsyncSession, username: str) -> User:
         return result.scalars().one()
     except:
         raise
+
+async def create_db_and_tables():
+    async with __user_db_engine.begin() as conn:
+        await conn.run_sync(misc.Base.metadata.create_all)

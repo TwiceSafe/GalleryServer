@@ -2,14 +2,14 @@ import time
 from typing import Self
 
 from sqlalchemy import TypeDecorator, Integer
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, DeclarativeBase
 
 
 def current_timestamp() -> int:
     return int(time.time())
 
 
-Base = declarative_base()
+Base: DeclarativeBase = declarative_base()
 
 
 class IntEnum(TypeDecorator):

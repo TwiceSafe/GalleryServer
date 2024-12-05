@@ -26,7 +26,7 @@ paths:
       security:
         - jwt: [ 'secret' ]
   /auth/register:
-    get:
+    post:
       summary: Register user and return JWT token
       parameters:
         - name: username

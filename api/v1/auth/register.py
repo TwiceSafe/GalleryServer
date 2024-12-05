@@ -3,7 +3,7 @@ import uuid
 from classes.user import User, UserStatus, user_db_session_maker
 
 
-async def search(username: str, password: str):
+async def post(username: str, password: str):
     async with user_db_session_maker() as session:
         user = User()
 

@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Self
 
 import jwt
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
+import sqlalchemy
+from sqlalchemy import select, Engine
+from sqlalchemy.orm import Mapped, mapped_column
 
 import misc
 from config import get_config
@@ -14,11 +14,7 @@ from security import get_jwt_settings
 
 config = get_config()
 jwt_settings = get_jwt_settings()
-
-
-__user_db_engine = create_async_engine("sqlite+aiosqlite:///"+get_config().data_directory+"/db/users.db", echo=True)
-
-user_db_session_maker = sessionmaker(__user_db_engine, class_=AsyncSession, expire_on_commit=False)  # TODO: remove expire_on_commit
+db: sqlalchemy.orm.session.Session
 
 class UserStatus(misc.IntEnum):
     DELETED_UNSPECIFIED = -1
@@ -66,17 +62,17 @@ class User(misc.Base):
 
         return commit_id
 
-    async def save(self, session: AsyncSession, new: bool = False):
+    def save(self, new: bool = False):
         try:
             if new:
-                session.add(self)
+                db.add(self)
             else:
-                await session.merge(self)
+                db.merge(self)
         except:
-            await session.rollback()
+            db.rollback()
             raise
         else:
-            await session.commit()
+            db.commit()
 
     def __repr__(self) -> str:
         return f"User(user_id={self.user_id})"
@@ -97,30 +93,29 @@ def decode_token(token) -> dict:
                       algorithms=[jwt_settings.jwt_algorithm],
                       issuer=jwt_settings.jwt_issuer)
 
-async def get_user_from_token(session: AsyncSession, token: str) -> User:
-    return await get_user_from_token_info(session, decode_token(token))
+def get_user_from_token(token: str) -> User:
+    return get_user_from_token_info(decode_token(token))
 
-async def get_user_from_token_info(session: AsyncSession, token_info: dict) -> User:
+def get_user_from_token_info(token_info: dict) -> User:
     try:
-        result = await session.execute(select(User).where(User.user_id == token_info["sub"].split(".")[0]))
+        result = db.execute(select(User).where(User.user_id == token_info["sub"].split(".")[0]))
         return result.scalars().one()
     except:
         raise
 
-async def get_user_from_user_id(session: AsyncSession, user_id: str) -> User:
+def get_user_from_user_id(user_id: str) -> User:
     try:
-        result = await session.execute(select(User).where(User.user_id == user_id))
+        result = db.execute(select(User).where(User.user_id == user_id))
         return result.scalars().one()
     except:
         raise
 
-async def get_user_from_username(session: AsyncSession, username: str) -> User:
+def get_user_from_username(username: str) -> User:
     try:
-        result = await session.execute(select(User).where(User.username == username))
+        result = db.execute(select(User).where(User.username == username))
         return result.scalars().one()
     except:
         raise
 
-async def create_db_and_tables():
-    async with __user_db_engine.begin() as conn:
-        await conn.run_sync(misc.Base.metadata.create_all)
+def create_db_and_tables(engine: Engine):
+    misc.Base.metadata.create_all(engine)

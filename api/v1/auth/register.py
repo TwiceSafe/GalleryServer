@@ -1,16 +1,15 @@
 import uuid
 
-from classes.user import User, UserStatus, user_db_session_maker
+from classes.user import User, UserStatus
 
 
-async def post(username: str, password: str):
-    async with user_db_session_maker() as session:
-        user = User()
+def post(username: str, password: str):
+    user = User()
 
-        user.user_id = str(uuid.uuid4())
-        user.status = UserStatus.ACTIVE
-        user.username = username
-        user.password = password
-        await user.save(session, new=True)
+    user.user_id = str(uuid.uuid4())
+    user.status = UserStatus.ACTIVE
+    user.username = username
+    user.password = password
+    user.save(new=True)
 
-        return user.generate_token()
+    return user.generate_token()

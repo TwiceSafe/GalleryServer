@@ -1,3 +1,4 @@
+import sqlite3
 import time
 import uuid
 from multiprocessing import Queue
@@ -5,6 +6,7 @@ from typing import Self
 
 from gunicorn.app.wsgiapp import WSGIApplication
 from sqlalchemy import TypeDecorator, Integer
+from sqlalchemy.dialects.sqlite.base import SQLiteDialect
 from sqlalchemy.orm import declarative_base, DeclarativeBase
 
 
@@ -89,3 +91,16 @@ def handle_incoming_commit(user, repository_name, commit):
             return response.commit_id
         except:
             return None
+
+
+class MPSQLiteDialect(SQLiteDialect):
+    name = "mpsqlite"
+    driver = "sqlite3"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.connection = sqlite3.connect(":memory:")  # Локальная SQLite БД для примера
+
+    def import_dbapi(self):
+        # Возвращаем модуль sqlite3
+        return sqlite3

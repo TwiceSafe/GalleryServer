@@ -110,12 +110,15 @@ def get_user_from_user_id(user_id: str) -> User:
     except:
         raise
 
-def get_user_from_username(username: str) -> User:
+def get_user_from_username(username: str, raise_error: bool = True) -> User | None:
     try:
         result = db.execute(select(User).where(User.username == username))
         return result.scalars().one()
     except:
-        raise
+        if raise_error:
+            raise
+        else:
+            return None
 
 def create_db_and_tables(engine: Engine):
     misc.Base.metadata.create_all(engine)

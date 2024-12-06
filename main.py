@@ -34,7 +34,7 @@ def __worker_thread():
 
 
 if __name__ == "__main__":
-    registry.register("sqlite.mpsqlite", "misc", "MPSQLiteDialect")
+    registry.register("sqlite.mpsqlite", "mpsqlite.main", "MPSQLiteDialect")
     __user_db_engine = create_engine(
         "sqlite+mpsqlite:///" + get_config().data_directory + "/db/users.db?check_same_thread=False", echo=True)
 

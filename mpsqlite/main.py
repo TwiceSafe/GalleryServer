@@ -15,10 +15,8 @@ class MPSQLiteWrapper:
         return connections[kwargs["database"]]
 
     def __getattr__(self, name):
-        logging.debug("(SQLite) Starting getting attribute ", name)
         import sqlite3
         resp = getattr(sqlite3, name)
-        logging.debug("(SQLite) Getting attribute ", name, " and response is ", resp)
         return resp
 
 

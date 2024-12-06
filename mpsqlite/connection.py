@@ -152,8 +152,5 @@ class MPSQLiteConnectionWrapper:
         return MPSQLiteCursorWrapper(self.__cursor_request_queue, self.__cursor_response_queue, args, kwargs)
 
     def __getattr__(self, name):
-        print("(Connection) Starting getting attribute",name)
-        #resp = getattr(self.connection, name)
         resp = MPSQLiteConnectionAttributesProxy(name, self.__connection_request_queue, self.__connection_response_queue)
-        print("(Connection) Getting attribute", name, "and response is", resp)
         return resp

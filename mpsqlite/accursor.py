@@ -40,15 +40,12 @@ class MPSQLiteAlreadyCreatedCursorAttributesProxy:
 
 class MPSQLiteAlreadyCreatedCursorWrapper:
     def __init__(self, already_created_cursor_id, already_created_cursor_request_queue, already_created_cursor_response_queue):
-        self.already_created_cursor_id = already_created_cursor_id
-        self.already_created_cursor_request_queue = already_created_cursor_request_queue
-        self.already_created_cursor_response_queue = already_created_cursor_response_queue
+        self.__already_created_cursor_id = already_created_cursor_id
+        self.__already_created_cursor_request_queue = already_created_cursor_request_queue
+        self.__already_created_cursor_response_queue = already_created_cursor_response_queue
 
     def close(self):
         return self.__getattr__("close")()
 
     def __getattr__(self, name):
-        # TODO: still dont know why this code without if is going circular
-        if name not in ["already_created_cursor_id", "already_created_cursor_request_queue", "already_created_cursor_response_queue"]:
-            return super().__getattr__(name)
-        return MPSQLiteAlreadyCreatedCursorAttributesProxy(self.already_created_cursor_id, self.already_created_cursor_request_queue, self.already_created_cursor_response_queue)
+        return MPSQLiteAlreadyCreatedCursorAttributesProxy(self.__already_created_cursor_id, self.__already_created_cursor_request_queue, self.__already_created_cursor_response_queue)

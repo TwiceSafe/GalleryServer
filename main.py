@@ -36,7 +36,7 @@ def __worker_thread():
 if __name__ == "__main__":
     registry.register("sqlite.mpsqlite", "misc", "MPSQLiteDialect")
     __user_db_engine = create_engine(
-        "sqlite:///" + get_config().data_directory + "/db/users.db?check_same_thread=False", echo=True)
+        "sqlite+mpsqlite:///" + get_config().data_directory + "/db/users.db?check_same_thread=False", echo=True)
 
     user_db_session_maker = sessionmaker(__user_db_engine, expire_on_commit=False)  # TODO: remove expire_on_commit
     user.create_db_and_tables(__user_db_engine)

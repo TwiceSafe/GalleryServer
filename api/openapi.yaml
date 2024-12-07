@@ -4,6 +4,24 @@ info:
   version: 1.0.0
   description: This is a sample API.
 paths:
+  /hello:
+    get:
+      summary: Ping server and get information about it.
+      parameters:
+        - name: v
+          description: Version of API
+          in: query
+          required: False
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Server sent a response containing info about it.
+          content:
+            application/json:
+              schema:
+                type: object
+
   /upload:
     post:
       summary: Uploads an image file
@@ -87,7 +105,7 @@ paths:
         '200':
           description: JWT token
           content:
-            'text/plain':
+            text/plain:
               schema:
                 type: string
   /auth/refreshToken:

@@ -8,6 +8,12 @@ paths:
     get:
       summary: Ping server and get information about it.
       parameters:
+        - name: error
+          description: Error should be emitted. 0 for not raising, 1 for raising
+          in: query
+          required: False
+          schema:
+            type: integer
         - name: v
           description: Version of API
           in: query
@@ -21,7 +27,40 @@ paths:
             application/json:
               schema:
                 type: object
-
+                properties:
+                  status:
+                    type: integer
+                    description: Response status 200
+                  response:
+                    type: object
+                    description: Response data
+                    properties:
+                      hello:
+                        type: string
+                        description: Some string signaling that the server is working
+                      api_version:
+                        type: integer
+                        description: Actual API version that server can handle
+        400:
+          description: Server sent a response with error. Nothing affected because of this
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Response status 400
+                  error:
+                    type: object
+                    description: Response error data
+                    properties:
+                      name:
+                        type: string
+                        description: Error name
+                      description:
+                        type: string
+                        description: Error description
   /upload:
     post:
       summary: Uploads an image file

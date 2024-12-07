@@ -89,3 +89,23 @@ def handle_incoming_commit(user, repository_name, commit):
             return response.commit_id
         except:
             return None
+
+
+def versioned(func, *args, **kwargs):
+    v = kwargs.pop("v")
+    min_version = kwargs.pop("min_version")
+    for i in range(v, min_version-1, -1):
+        try:
+            return getattr(func, f"v{i}")(*args, **kwargs)
+        except AttributeError:
+            pass
+    return {
+        "status": 400,
+        "error": {
+            "name": "lowapi",
+            "description": "Specified API version is lower than allowed. Please update your application."
+        }
+    }, 400, {"Content-Type": "application/json"}
+
+
+

@@ -141,12 +141,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        200:
           description: JWT token
           content:
-            text/plain:
+            application/json:
               schema:
                 type: string
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
   /auth/refreshToken:
     get:
       summary: Get new JWT token for this device

@@ -17,7 +17,7 @@ config = get_config()
 
 app = AsyncApp(__name__)
 
-app.add_api('api/v1/openapi.yaml', base_path='/api/v1', resolver=RestyResolver("api.v1"))
+app.add_api('api/openapi.yaml', base_path='/api', resolver=RestyResolver("api"))
 
 Path(config.data_directory).mkdir(parents=True, exist_ok=True)
 

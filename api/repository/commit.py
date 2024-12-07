@@ -4,7 +4,7 @@ import misc
 from classes.user import get_user_from_token_info
 from config import get_config
 
-def get(token_info: dict, repository_name: str, commit_id: str):
+def get(token_info: dict, repository_name: str, commit_id: str, v: int):
     user = get_user_from_token_info(token_info)
     Path(get_config().data_directory + "/usercommits/v1/" + user.user_id + "/v1/" + repository_name).mkdir(
         parents=True, exist_ok=True)

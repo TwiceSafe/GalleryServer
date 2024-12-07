@@ -7,7 +7,7 @@ from classes.user import get_user_from_token_info
 from config import get_config
 
 
-async def post(token_info, file: starlette.datastructures.UploadFile):
+async def post(token_info, file: starlette.datastructures.UploadFile, v: int):
     user = get_user_from_token_info(token_info)
     assert isinstance(file, starlette.datastructures.UploadFile)
 

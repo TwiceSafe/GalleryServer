@@ -1,7 +1,7 @@
 from classes.user import get_user_from_token_info
 
 
-def search(token_info: dict, repository_name: str):
+def search(token_info: dict, repository_name: str, v: int):
         user = get_user_from_token_info(token_info)
         head = user.get_head(repository_name)
         if head is None:

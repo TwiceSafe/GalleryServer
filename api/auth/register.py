@@ -3,7 +3,7 @@ import uuid
 from classes.user import User, UserStatus, get_user_from_username
 
 
-def post(username: str, password: str):
+def post(username: str, password: str, v: int):
     user = get_user_from_username(username, raise_error=False)
     if user is not None:
         return None, 403

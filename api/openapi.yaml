@@ -7,6 +7,13 @@ paths:
   /upload:
     post:
       summary: Uploads an image file
+      parameters:
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -41,6 +48,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: JWT token
@@ -64,6 +77,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       responses:
         '200':
           description: JWT token
@@ -74,6 +93,13 @@ paths:
   /auth/refreshToken:
     get:
       summary: Get new JWT token for this device
+      parameters:
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       responses:
         200:
           description: "Refreshing token success"
@@ -92,6 +118,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       responses:
         200:
           description: "Getting head success"
@@ -110,6 +142,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       requestBody:
         x-body-name: commit
         description: Commit data
@@ -142,6 +180,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: v
+          description: Version of API
+          in: query
+          required: true
+          schema:
+            type: integer
       responses:
         200:
           description: "Commit info"

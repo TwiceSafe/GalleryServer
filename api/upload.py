@@ -3,7 +3,6 @@ from pathlib import Path
 
 import starlette.datastructures
 
-import misc
 from classes.user import get_user_from_token_info
 from config import get_config
 
@@ -76,7 +75,3 @@ async def post_v1dot0(token_info, file: starlette.datastructures.UploadFile):
             "file_id": file_id
         }
     }, 200
-
-async def post(*args, **kwargs):
-    post.v1dot0 = post_v1dot0
-    return await misc.async_versioned(post, *args, **kwargs)

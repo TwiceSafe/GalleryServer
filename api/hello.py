@@ -106,8 +106,3 @@ def search_v1dot0(error: Optional[int] = None):
 
 def search_nonversioned(error: Optional[int] = None):
     return search_v1dot0(error)
-
-def search(*args, **kwargs):
-    search.v1dot0 = search_v1dot0
-    search.nonversioned = search_nonversioned
-    return misc.versioned(search, allow_no_version=True, *args, **kwargs)

@@ -35,7 +35,3 @@ def search_v1dot0(token_info):
             "token": user.generate_token(token_info["sub"].split(".")[1])
         }
     }, 200
-
-#def search(*args, **kwargs):
-#    search.v1dot0 = search_v1dot0
-#    return misc.versioned(search, *args, **kwargs)

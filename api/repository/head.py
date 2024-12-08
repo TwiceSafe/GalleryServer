@@ -1,4 +1,3 @@
-import misc
 from classes.user import get_user_from_token_info
 
 spec_paths = {
@@ -56,9 +55,5 @@ def search_v1dot0(token_info: dict, repository_name: str):
             "head": head
         }
     }
-
-def search(*args, **kwargs):
-    search.v1dot0 = search_v1dot0
-    return misc.versioned(search, *args, **kwargs)
 
 # no post/put as there will be no force push

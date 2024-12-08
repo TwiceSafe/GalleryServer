@@ -129,10 +129,6 @@ def get_v1dot0(token_info: dict, repository_name: str, commit_id: str):
         }
     }, 200
 
-def get(*args, **kwargs):
-    get.v1dot0 = get_v1dot0
-    return misc.versioned(get, *args, **kwargs)
-
 
 def post_v1dot0(token_info: dict, repository_name: str, commit: dict):
     user = get_user_from_token_info(token_info)
@@ -142,7 +138,3 @@ def post_v1dot0(token_info: dict, repository_name: str, commit: dict):
             "commit_id": commit_id
         }
     }, 200
-
-def post(*args, **kwargs):
-    post.v1dot0 = post_v1dot0
-    return misc.versioned(post, *args, **kwargs)

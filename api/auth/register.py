@@ -1,6 +1,5 @@
 import uuid
 
-import misc
 from classes.user import User, UserStatus, get_user_from_username
 
 spec_paths = {
@@ -79,7 +78,3 @@ def post_v1dot0(username: str, password: str):
             "token": user.generate_token()
         }
     }, 200
-
-#def post(*args, **kwargs):
-#    post.v1dot0 = post_v1dot0
-#    return misc.versioned(post, *args, **kwargs)

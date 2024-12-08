@@ -2,10 +2,9 @@ import importlib
 import os
 import time
 import uuid
-from asyncio import iscoroutinefunction, iscoroutine
+from asyncio import iscoroutine
 from multiprocessing import Queue
 from pathlib import Path
-from types import coroutine
 from typing import Self
 
 import yaml
@@ -15,7 +14,7 @@ from sqlalchemy import TypeDecorator, Integer
 from sqlalchemy.orm import declarative_base, DeclarativeBase
 
 
-API_VERSIONS = ["v1.4", "v1.3", "v1.2", "v1.1", "v1.0"]
+API_VERSIONS = ["v1.0"]
 
 def current_timestamp() -> int:
     return int(time.time())
@@ -209,7 +208,6 @@ def generate_versioned_openapis():
 class CustomRestyResolver(RestyResolver):
     def __init__(self, version: str, *, collection_endpoint_name: str = "search"):
         """
-        :param default_module_name: Default module name for operations
         :param collection_endpoint_name: Name of function to resolve collection endpoints to
         """
         super().__init__("api", collection_endpoint_name=collection_endpoint_name)

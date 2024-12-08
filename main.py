@@ -15,6 +15,7 @@ from misc import StandaloneApplication, API_VERSIONS
 
 config = get_config()
 
+
 def __worker_thread():
     while True:
         try:
@@ -26,11 +27,14 @@ def __worker_thread():
         except:
             continue
 
+
 if __name__ != "__main__":
     app = AsyncApp(__name__)
     for version in API_VERSIONS:
-        app.add_api(f'openapis/openapi_{version}.yaml', base_path=f'/api/{version}', resolver=misc.CustomRestyResolver(version))
-    app.add_api(f'openapis/openapi_nonversioned.yaml', base_path=f'/api', resolver=misc.CustomRestyResolver("nonversioned"))
+        app.add_api(f'openapis/openapi_{version}.yaml', base_path=f'/api/{version}',
+                    resolver=misc.CustomRestyResolver(version))
+    app.add_api(f'openapis/openapi_nonversioned.yaml', base_path=f'/api',
+                resolver=misc.CustomRestyResolver("nonversioned"))
 
 if __name__ == "__main__":
     misc.generate_versioned_openapis()

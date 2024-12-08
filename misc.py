@@ -15,6 +15,8 @@ from sqlalchemy import TypeDecorator, Integer
 from sqlalchemy.orm import declarative_base, DeclarativeBase
 
 
+API_VERSIONS = ["v1.4", "v1.3", "v1.2", "v1.1", "v1.0"]
+
 def current_timestamp() -> int:
     return int(time.time())
 
@@ -98,7 +100,6 @@ def handle_incoming_commit(user, repository_name, commit):
             return None
 
 
-API_VERSIONS = ["v1.0"]
 ERROR_RESPONSE = {
         "error": {
             "code": 1,  # TODO: create own status
@@ -223,6 +224,19 @@ class CustomRestyResolver(RestyResolver):
         if operation.operation_id:
             return super().resolve_operation_id(operation)
 
-        return self.resolve_operation_id_using_rest_semantics(operation)+"_"+self.version.replace(".", "dot")
+        def get_versioned_function_name(version):
+            if version == "nonversioned":
+                return self.resolve_operation_id_using_rest_semantics(operation)+"_"+self.version.replace(".", "dot")
+            for existing_version in API_VERSIONS[API_VERSIONS.index(version):]:
+                modulename = ".".join(self.resolve_operation_id_using_rest_semantics(operation).split(".")[:-1])
+                functionname = self.resolve_operation_id_using_rest_semantics(operation).split(".")[-1]
+
+                module = importlib.import_module(modulename)
+                if not hasattr(module, functionname+"_"+existing_version.replace(".", "dot")):
+                    continue
+                return self.resolve_operation_id_using_rest_semantics(operation)+"_"+existing_version.replace(".", "dot")
+            return None
+
+        return get_versioned_function_name(self.version)
 
 

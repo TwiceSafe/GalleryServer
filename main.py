@@ -8,6 +8,7 @@ from sqlalchemy.dialects import registry
 from sqlalchemy.orm import sessionmaker
 
 import misc
+import security
 from classes import user
 from classes.user import get_user_from_user_id
 from config import get_config
@@ -41,6 +42,8 @@ if __name__ == "__main__":
 
     Path(config.data_directory).mkdir(parents=True, exist_ok=True)
 
+    security.generate_ssl_certs_if_needed()
+
     registry.register("sqlite.mpsqlite", "mpsqlite.main", "MPSQLiteDialect")
     __user_db_engine = create_engine(
         "sqlite+mpsqlite:///" + get_config().data_directory + "/db/users.db")
@@ -60,5 +63,7 @@ if __name__ == "__main__":
         options = {
             "workers": (multiprocessing.cpu_count() * 2) + 1,
             "worker_class": "uvicorn.workers.UvicornWorker",
+            "certfile": security.SSL_SERVER_CERT_PATH,
+            "keyfile": security.SSL_SERVER_KEY_PATH
         }
         StandaloneApplication(f"{Path(__file__).stem}:app", options).run()

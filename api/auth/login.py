@@ -1,5 +1,46 @@
-import misc
 from classes.user import get_user_from_username
+
+spec_paths = {
+    "v1.0": {
+        "/auth/login": {
+            "get": {
+                "summary": "Return JWT token",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "description": "Username",
+                        "in": "query",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "description": "User password",
+                        "in": "query",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 def search_v1dot0(username: str, password: str):
@@ -11,7 +52,3 @@ def search_v1dot0(username: str, password: str):
             "token": user.generate_token()
         }
     }, 200
-
-def search(*args, **kwargs):
-    search.v1dot0 = search_v1dot0
-    return misc.versioned(search, *args, **kwargs)

@@ -7,6 +7,58 @@ import misc
 from classes.user import get_user_from_token_info
 from config import get_config
 
+spec_paths = {
+    "v1.0": {
+        "/upload": {
+            "post": {
+                "summary": "Uploads an image file",
+                "security": [
+                    {
+                        "jwt": ["secret"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Uploading success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 async def post_v1dot0(token_info, file: starlette.datastructures.UploadFile):
     user = get_user_from_token_info(token_info)

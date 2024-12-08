@@ -1,10 +1,15 @@
+import importlib
+import os
 import time
 import uuid
 from asyncio import iscoroutinefunction, iscoroutine
 from multiprocessing import Queue
+from pathlib import Path
 from types import coroutine
 from typing import Self
 
+import yaml
+from connexion import RestyResolver
 from gunicorn.app.wsgiapp import WSGIApplication
 from sqlalchemy import TypeDecorator, Integer
 from sqlalchemy.orm import declarative_base, DeclarativeBase
@@ -150,5 +155,74 @@ def versioned(func, version: str = None, max_version: str = None, allow_no_versi
 
     return ERROR_RESPONSE
 
+def generate_versioned_openapis():
+    api_versions_with_unversioned = API_VERSIONS.copy()
+    api_versions_with_unversioned.append("nonversioned")
+    versioned_spec_paths = {k: {} for k in api_versions_with_unversioned}
+
+    for subdir, dirs, files in os.walk("api"):
+        for file in files:
+            if file.endswith(".py"):
+                file_spec_paths = getattr(importlib.import_module(f"{subdir.replace("/", ".")}.{file[:-3]}"),
+                                          "spec_paths")
+
+                def get_spec_paths_for_this_version(version):
+                    if version == "nonversioned":
+                        return file_spec_paths.get("nonversioned", {})
+                    for existing_version in API_VERSIONS[API_VERSIONS.index(version):]:
+                        try:
+                            return file_spec_paths[existing_version]
+                        except:
+                            pass
+                    return {}
+
+                for version in api_versions_with_unversioned:
+                    spec_paths_for_this_version = get_spec_paths_for_this_version(version)
+                    for k, v in spec_paths_for_this_version.items():
+                        versioned_spec_paths[version][f"{k}"] = v
+
+    Path("openapis").mkdir(parents=True, exist_ok=True)
+
+    for version in api_versions_with_unversioned:
+        with open(f'openapis/openapi_{version}.yaml', 'w+') as f:
+            yaml.dump({
+                "openapi": "3.0.0",
+                "info": {
+                    "title": "TwiceSafe Vault API",
+                    "version": version,
+                    "description": "API for clients"
+                },
+                "components": {
+                    "securitySchemes": {
+                        "jwt": {
+                            "type": "http",
+                            "scheme": "bearer",
+                            "bearerFormat": "JWT",
+                            "x-bearerInfoFunc": "classes.user.decode_token"
+                        }
+                    }
+                },
+                "paths": versioned_spec_paths[version]
+            }, f, allow_unicode=True)
+
+class CustomRestyResolver(RestyResolver):
+    def __init__(self, version: str, *, collection_endpoint_name: str = "search"):
+        """
+        :param default_module_name: Default module name for operations
+        :param collection_endpoint_name: Name of function to resolve collection endpoints to
+        """
+        super().__init__("api", collection_endpoint_name=collection_endpoint_name)
+        self.version = version
+
+    def resolve_operation_id(self, operation):
+        """
+        Resolves the operationId using REST semantics unless explicitly configured in the spec
+
+        :type operation: connexion.operations.AbstractOperation
+        """
+        if operation.operation_id:
+            return super().resolve_operation_id(operation)
+
+        return self.resolve_operation_id_using_rest_semantics(operation)+"_"+self.version.replace(".", "dot")
 
 

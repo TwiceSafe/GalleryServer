@@ -5,6 +5,108 @@ import misc
 from classes.user import get_user_from_token_info
 from config import get_config
 
+spec_paths = {
+    "v1.0": {
+        "/repository/{repository_name}/commit": {
+            "post": {
+                "summary": "Get new JWT token for this device",
+                "security": [
+                    {
+                        "jwt": ["secret"]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "repository_name",
+                        "description": "Repository name",
+                        "in": "path",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "x-body-name": "commit",
+                    "description": "Commit data",
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Add new commit",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/repository/{repository_name}/commit/{commit_id}": {
+            "get": {
+                "summary": "Get new JWT token for this device",
+                "security": [
+                    {
+                        "jwt": ["secret"]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "repository_name",
+                        "description": "Repository name",
+                        "in": "path",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "commit_id",
+                        "description": "Commit ID",
+                        "in": "path",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commit info",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 def get_v1dot0(token_info: dict, repository_name: str, commit_id: str):
     user = get_user_from_token_info(token_info)

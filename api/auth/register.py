@@ -3,6 +3,58 @@ import uuid
 import misc
 from classes.user import User, UserStatus, get_user_from_username
 
+spec_paths = {
+    "v1.0": {
+        "/auth/register": {
+            "post": {
+                "summary": "Register user and return JWT token",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "description": "Username",
+                        "in": "query",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "description": "User password",
+                        "in": "query",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 def post_v1dot0(username: str, password: str):
     user = get_user_from_username(username, raise_error=False)
@@ -28,6 +80,6 @@ def post_v1dot0(username: str, password: str):
         }
     }, 200
 
-def post(*args, **kwargs):
-    post.v1dot0 = post_v1dot0
-    return misc.versioned(post, *args, **kwargs)
+#def post(*args, **kwargs):
+#    post.v1dot0 = post_v1dot0
+#    return misc.versioned(post, *args, **kwargs)

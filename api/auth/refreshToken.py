@@ -1,5 +1,31 @@
-import misc
 from classes.user import get_user_from_token_info
+
+spec_paths = {
+    "v1.0": {
+        "/auth/refreshToken": {
+            "get": {
+                "summary": "Get new JWT token for this device",
+                "security": [
+                    {
+                        "jwt": ["secret"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Refreshing token success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 def search_v1dot0(token_info):
@@ -10,6 +36,6 @@ def search_v1dot0(token_info):
         }
     }, 200
 
-def search(*args, **kwargs):
-    search.v1dot0 = search_v1dot0
-    return misc.versioned(search, *args, **kwargs)
+#def search(*args, **kwargs):
+#    search.v1dot0 = search_v1dot0
+#    return misc.versioned(search, *args, **kwargs)

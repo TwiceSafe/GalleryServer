@@ -2,7 +2,7 @@ import multiprocessing
 import threading
 from pathlib import Path
 
-from connexion import AsyncApp, RestyResolver
+from connexion import AsyncApp
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import registry
 from sqlalchemy.orm import sessionmaker
@@ -11,15 +11,9 @@ import misc
 from classes import user
 from classes.user import get_user_from_user_id
 from config import get_config
-from misc import StandaloneApplication
+from misc import StandaloneApplication, API_VERSIONS
 
 config = get_config()
-
-app = AsyncApp(__name__)
-
-app.add_api('api/openapi.yaml', base_path='/api', resolver=RestyResolver("api"))
-
-Path(config.data_directory).mkdir(parents=True, exist_ok=True)
 
 def __worker_thread():
     while True:
@@ -32,8 +26,17 @@ def __worker_thread():
         except:
             continue
 
+if __name__ != "__main__":
+    app = AsyncApp(__name__)
+    for version in API_VERSIONS:
+        app.add_api(f'openapis/openapi_{version}.yaml', base_path=f'/api/{version}', resolver=misc.CustomRestyResolver(version))
+    app.add_api(f'openapis/openapi_nonversioned.yaml', base_path=f'/api', resolver=misc.CustomRestyResolver("nonversioned"))
 
 if __name__ == "__main__":
+    misc.generate_versioned_openapis()
+
+    Path(config.data_directory).mkdir(parents=True, exist_ok=True)
+
     registry.register("sqlite.mpsqlite", "mpsqlite.main", "MPSQLiteDialect")
     __user_db_engine = create_engine(
         "sqlite+mpsqlite:///" + get_config().data_directory + "/db/users.db")

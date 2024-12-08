@@ -1,20 +1,29 @@
 from typing import Optional
 
+import misc
 
-def search(error: Optional[int] = None, v: Optional[int] = None):
-    if error:
+
+def search(*args, **kwargs):
+    def v1dot0(error: Optional[int] = None):
+        if error:
+            return {
+                "error": {
+                    "code": 1,  # TODO: create own status
+                    "name": "bad_request",
+                    "description": "You sent bad request on purpose."
+                }
+            }, 400
+
         return {
-            "status": 400,
-            "error": {
-                "name": "badrequest",
-                "description": "You sent bad request on purpose."
+            "response": {
+                "hello": "Hi!",
+                "api_version": misc.API_VERSIONS[0]
             }
-        }, 400
+        }, 200
+    search.v1dot0 = v1dot0
 
-    return {
-        "status": 200,
-        "response": {
-            "hello": "Hi!",
-            "api_version": 1
-        }
-    }
+    def nonversioned(error: Optional[int] = None):
+        return v1dot0(error)
+    search.nonversioned = nonversioned
+
+    return misc.versioned(search, allow_no_version=True, *args, **kwargs)

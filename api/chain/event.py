@@ -8,9 +8,9 @@ from config import get_config
 
 spec_paths = {
     "v1.0": {
-        "/repository/{repository_name}/commit": {
+        "/chain/{chain_name}/event": {
             "post": {
-                "summary": "Get new JWT token for this device",
+                "summary": "Add new event",
                 "security": [
                     {
                         "jwt": ["secret"]
@@ -18,8 +18,8 @@ spec_paths = {
                 ],
                 "parameters": [
                     {
-                        "name": "repository_name",
-                        "description": "Repository name",
+                        "name": "chain_name",
+                        "description": "Chain name",
                         "in": "path",
                         "required": True,
                         "schema": {
@@ -28,8 +28,8 @@ spec_paths = {
                     }
                 ],
                 "requestBody": {
-                    "x-body-name": "commit",
-                    "description": "Commit data",
+                    "x-body-name": "event",
+                    "description": "Event",
                     "required": True,
                     "content": {
                         "application/json": {
@@ -41,7 +41,7 @@ spec_paths = {
                 },
                 "responses": {
                     "200": {
-                        "description": "Add new commit",
+                        "description": "Added new event",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -53,9 +53,9 @@ spec_paths = {
                 }
             }
         },
-        "/repository/{repository_name}/commit/{commit_id}": {
+        "/chain/{chain_name}/event/{event_id}": {
             "get": {
-                "summary": "Get new JWT token for this device",
+                "summary": "Get event data",
                 "security": [
                     {
                         "jwt": ["secret"]
@@ -63,8 +63,8 @@ spec_paths = {
                 ],
                 "parameters": [
                     {
-                        "name": "repository_name",
-                        "description": "Repository name",
+                        "name": "chain_name",
+                        "description": "Chain name",
                         "in": "path",
                         "required": True,
                         "schema": {
@@ -72,8 +72,8 @@ spec_paths = {
                         }
                     },
                     {
-                        "name": "commit_id",
-                        "description": "Commit ID",
+                        "name": "event_id",
+                        "description": "Event ID",
                         "in": "path",
                         "required": True,
                         "schema": {
@@ -83,7 +83,7 @@ spec_paths = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Commit info",
+                        "description": "Event info",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -109,38 +109,38 @@ spec_paths = {
 }
 
 
-def get_v1dot0(token_info: dict, repository_name: str, commit_id: str):
+def get_v1dot0(token_info: dict, chain_name: str, event_id: str):
     user = get_user_from_token_info(token_info)
-    Path(get_config().data_directory + "/usercommits/v1/" + user.user_id + "/v1/" + repository_name).mkdir(
+    Path(get_config().data_directory + "/userevents/v1/" + user.user_id + "/v1/" + chain_name).mkdir(
         parents=True, exist_ok=True)
     if not Path(
-            get_config().data_directory + "/usercommits/v1/" + user.user_id + "/v1/" + repository_name + "/" + commit_id).is_file():
+            get_config().data_directory + "/userevents/v1/" + user.user_id + "/v1/" + chain_name + "/" + event_id).is_file():
         return {
             "error": {
                 "code": 1,  # TODO: create own status
                 "name": "not_found",
-                "description": "No commit with this id was found."
+                "description": "No event with this id was found."
             }
         }, 400
     return {
         "response": {
-            "commit": json.loads(open(
-                get_config().data_directory + "/usercommits/v1/" + user.user_id + "/v1/" + repository_name + "/" + commit_id,
+            "event": json.loads(open(
+                get_config().data_directory + "/userevents/v1/" + user.user_id + "/v1/" + chain_name + "/" + event_id,
                 "r").read())
         }
     }, 200
 
 
-def post_v1dot0(token_info: dict, repository_name: str, commit: dict):
+def post_v1dot0(token_info: dict, chain_name: str, event: dict):
     user = get_user_from_token_info(token_info)
     temp_id = str(uuid.uuid4())
-    misc.commit_requests_queue.put(misc.CommitRequest(temp_id, user.user_id, repository_name, commit))
+    misc.add_event_requests_queue.put(misc.AddEventRequest(temp_id, user.user_id, chain_name, event))
     while True:
         try:
-            response: misc.CommitResponse = misc.commit_responses_queue.get()
+            response: misc.AddEventResponse = misc.add_event_responses_queue.get()
 
             if response.temp_id != temp_id:
-                misc.commit_responses_queue.put(response)
+                misc.add_event_responses_queue.put(response)
                 continue
 
             return response.response

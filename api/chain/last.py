@@ -2,9 +2,9 @@ from classes.user import get_user_from_token_info
 
 spec_paths = {
     "v1.0": {
-        "/repository/{repository_name}/head": {
+        "/chain/{chain_name}/last": {
             "get": {
-                "summary": "Get head of this repository",
+                "summary": "Get last event id of this chain",
                 "security": [
                     {
                         "jwt": ["secret"]
@@ -12,8 +12,8 @@ spec_paths = {
                 ],
                 "parameters": [
                     {
-                        "name": "repository_name",
-                        "description": "Repository name",
+                        "name": "chain_name",
+                        "description": "Chain name",
                         "in": "path",
                         "required": True,
                         "schema": {
@@ -23,7 +23,7 @@ spec_paths = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Getting head success",
+                        "description": "Getting last event id success",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -39,20 +39,20 @@ spec_paths = {
 }
 
 
-def search_v1dot0(token_info: dict, repository_name: str):
+def search_v1dot0(token_info: dict, chain_name: str):
     user = get_user_from_token_info(token_info)
-    head = user.get_head(repository_name)
-    if head is None:
+    last_event_id = user.get_last_event_id(chain_name)
+    if last_event_id is None:
         return {
             "error": {
                 "code": 1,  # TODO: create own status
                 "name": "not_found",
-                "description": "This repository has not been initiated yet because of no HEAD file."
+                "description": "This chain doesn't have any events."
             }
         }, 400
     return {
         "response": {
-            "head": head
+            "last": last_event_id
         }
     }
 

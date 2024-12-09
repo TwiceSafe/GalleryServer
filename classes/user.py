@@ -38,34 +38,34 @@ class User(misc.Base):
         }
         return jwt.encode(payload, jwt_settings.jwt_secret, algorithm=jwt_settings.jwt_algorithm)
 
-    def get_head(self, repository_name):
-        folder_path = get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/"+repository_name
-        head_path = folder_path+"/HEAD"
+    def get_last_event_id(self, chain_name):
+        folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
+        head_path = folder_path+"/LAST"
         Path(folder_path).mkdir(parents=True, exist_ok=True)
         if not Path(head_path).is_file():
             return None
         return open(head_path, "r").read()
 
-    def unsafe_set_head(self, repository_name, commit_id):
-        folder_path = get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name
-        head_path = folder_path + "/HEAD"
+    def unsafe_set_last_event_id(self, chain_name, event_id):
+        folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
+        head_path = folder_path + "/LAST"
         Path(folder_path).mkdir(parents=True, exist_ok=True)
         f = open(head_path, "w")
-        f.write(commit_id)
+        f.write(event_id)
         f.flush()
         f.close()
 
-    def add_commit(self, repository_name: str, commit: dict) -> tuple[dict, int]:
-        if self.get_head(repository_name) != commit.get("parent", None):
+    def add_event(self, chain_name: str, event: dict) -> tuple[dict, int]:
+        if self.get_last_event_id(chain_name) != event.get("parent", None):
             return {
                 "error": {
                     "code": 1,  # TODO: create code
-                    "name": "head_mismatch",
-                    "description": "Commit's parent commit is not the last (or head) commit of this repository."
+                    "name": "parent_mismatch",
+                    "description": "Event's parent event is not the last event of this chain."
                 }
             }, 400
 
-        if commit.get("type", None) is None:
+        if event.get("type", None) is None:
             return {
                 "error": {
                     "code": 1,  # TODO: create code
@@ -74,7 +74,7 @@ class User(misc.Base):
                 }
             }, 400
 
-        if commit.get("data", None) is None:
+        if event.get("data", None) is None:
             return {
                 "error": {
                     "code": 1,  # TODO: create code
@@ -83,7 +83,7 @@ class User(misc.Base):
                 }
             }, 400
 
-        if commit.get("v", None) is None:
+        if event.get("v", None) is None:
             return {
                 "error": {
                     "code": 1,  # TODO: create code
@@ -92,7 +92,7 @@ class User(misc.Base):
                 }
             }, 400
 
-        if not((type(commit["v"]) is str) or (type(commit["v"]) is int)):
+        if not((type(event["v"]) is str) or (type(event["v"]) is int)):
             return {
                 "error": {
                     "code": 1,  # TODO: create code
@@ -101,30 +101,30 @@ class User(misc.Base):
                 }
             }, 400
 
-        commit_id = self.unsafe_add_commit(repository_name, commit)
-        self.unsafe_set_head(repository_name, commit_id)
+        event_id = self.unsafe_add_event(chain_name, event)
+        self.unsafe_set_last_event_id(chain_name, event_id)
         return {
             "response": {
-                "commit_id": commit_id
+                "event_id": event_id
             }
         }, 200
 
 
-    def unsafe_add_commit(self, repository_name: str, commit: dict) -> str:
-        folder_path = get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name
+    def unsafe_add_event(self, chain_name: str, event: dict) -> str:
+        folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
 
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
-        commit_id = str(uuid.uuid4())
-        commit_path = folder_path + "/" + commit_id
+        event_id = str(uuid.uuid4())
+        event_path = folder_path + "/" + event_id
         while Path(
-                commit_path).is_file():
-            commit_id = str(uuid.uuid4())
-            commit_path = folder_path + "/" + commit_id
+                event_path).is_file():
+            event_id = str(uuid.uuid4())
+            event_path = folder_path + "/" + event_id
 
-        open(commit_path, "w").write(json.dumps(commit))
+        open(event_path, "w").write(json.dumps(event))
 
-        return commit_id
+        return event_id
 
     def save(self, new: bool = False):
         try:

@@ -65,18 +65,18 @@ class StandaloneApplication(WSGIApplication):
         return self.app_uri
 
 
-commit_requests_queue: Queue
-commit_responses_queue: Queue
+add_event_requests_queue: Queue
+add_event_responses_queue: Queue
 
 
-class CommitRequest:
-    def __init__(self, temp_id: str, user_id: str, repository_name: str, commit: dict):
+class AddEventRequest:
+    def __init__(self, temp_id: str, user_id: str, chain_name: str, event: dict):
         self.temp_id = temp_id
         self.user_id = user_id
-        self.repository_name = repository_name
-        self.commit = commit
+        self.chain_name = chain_name
+        self.event = event
 
-class CommitResponse:
+class AddEventResponse:
     def __init__(self, temp_id: str, response: tuple[dict, int]):
         self.temp_id = temp_id
         self.response = response

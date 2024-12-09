@@ -17,14 +17,14 @@ from misc import StandaloneApplication, API_VERSIONS
 config = get_config()
 
 
-def commit_thread():
+def add_event_thread():
     while True:
         try:
-            request: misc.CommitRequest = misc.commit_requests_queue.get()
+            request: misc.AddEventRequest = misc.add_event_requests_queue.get()
             user = get_user_from_user_id(request.user_id)
-            response = user.add_commit(request.repository_name, request.commit)
-            queue_item_result = misc.CommitResponse(request.temp_id, response)
-            misc.commit_responses_queue.put(queue_item_result)
+            response = user.add_event(request.chain_name, request.event)
+            queue_item_result = misc.AddEventResponse(request.temp_id, response)
+            misc.add_event_responses_queue.put(queue_item_result)
         except:
             continue
 
@@ -53,10 +53,10 @@ if __name__ == "__main__":
     with user_db_session_maker() as session:
         user.db = session
 
-        misc.commit_requests_queue = multiprocessing.Manager().Queue()
-        misc.commit_responses_queue = multiprocessing.Manager().Queue()
+        misc.add_event_requests_queue = multiprocessing.Manager().Queue()
+        misc.add_event_responses_queue = multiprocessing.Manager().Queue()
 
-        t = threading.Thread(target=commit_thread)
+        t = threading.Thread(target=add_event_thread)
         t.daemon = True
         t.start()
 

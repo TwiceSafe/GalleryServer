@@ -77,26 +77,9 @@ class CommitRequest:
         self.commit = commit
 
 class CommitResponse:
-    def __init__(self, temp_id: str, result: int, commit_id: str):
+    def __init__(self, temp_id: str, response: tuple[dict, int]):
         self.temp_id = temp_id
-        self.result = result
-        self.commit_id = commit_id
-
-
-def handle_incoming_commit(user, repository_name, commit):
-    temp_id = str(uuid.uuid4())
-    commit_requests_queue.put(CommitRequest(temp_id, user.user_id, repository_name, commit))
-    while True:
-        try:
-            response: CommitResponse = commit_responses_queue.get()
-
-            if response.temp_id != temp_id:
-                commit_responses_queue.put(response)
-                continue
-
-            return response.commit_id
-        except:
-            return None
+        self.response = response
 
 
 ERROR_RESPONSE = {
@@ -109,51 +92,6 @@ ERROR_RESPONSE = {
                            "administrator to update the server."
         }
     }, 400, {"Content-Type": "application/json"}
-
-async def async_versioned(func, version: str, max_version: str = None, allow_no_version: bool = False, *args, **kwargs):
-    result = versioned(func, version, max_version, allow_no_version, *args, **kwargs)
-    if iscoroutine(result):
-        return await result
-    else:
-        return result
-
-def versioned(func, version: str = None, max_version: str = None, allow_no_version: bool = False, *args, **kwargs):
-    def wrap(versioned_function_string):
-        try:
-            return getattr(func, versioned_function_string)(*args, **kwargs)
-        except TypeError as e:
-            message = str(e)
-            if "got an unexpected keyword argument" in message:
-                unexpected_arg = message.split("'")[1]
-                kwargs.pop(unexpected_arg, None)
-                return wrap(versioned_function_string)
-            else:
-                raise
-
-    if version is None:
-        if allow_no_version:
-            return wrap("nonversioned")
-        else:
-            return ERROR_RESPONSE
-
-    if version not in API_VERSIONS:
-        return ERROR_RESPONSE
-
-    if max_version is not None:
-        if API_VERSIONS.index(version) < API_VERSIONS.index(max_version):
-            return ERROR_RESPONSE
-
-    api_versions_known_to_client = API_VERSIONS[API_VERSIONS.index(version):]
-
-    for i in api_versions_known_to_client:
-        versioned_function_string = f"{i.replace(".", "dot")}"
-        try:
-            return wrap(versioned_function_string)
-        except AttributeError as e:
-            if versioned_function_string not in str(e):
-                raise
-
-    return ERROR_RESPONSE
 
 def generate_versioned_openapis():
     api_versions_with_unversioned = API_VERSIONS.copy()

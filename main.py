@@ -17,13 +17,13 @@ from misc import StandaloneApplication, API_VERSIONS
 config = get_config()
 
 
-def __worker_thread():
+def commit_thread():
     while True:
         try:
             request: misc.CommitRequest = misc.commit_requests_queue.get()
             user = get_user_from_user_id(request.user_id)
-            commit_id = user.add_commit(request.repository_name, request.commit)
-            queue_item_result = misc.CommitResponse(request.temp_id, 0, commit_id)
+            response = user.add_commit(request.repository_name, request.commit)
+            queue_item_result = misc.CommitResponse(request.temp_id, response)
             misc.commit_responses_queue.put(queue_item_result)
         except:
             continue
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         misc.commit_requests_queue = multiprocessing.Manager().Queue()
         misc.commit_responses_queue = multiprocessing.Manager().Queue()
 
-        t = threading.Thread(target=__worker_thread)
+        t = threading.Thread(target=commit_thread)
         t.daemon = True
         t.start()
 

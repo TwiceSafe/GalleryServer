@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 
 import misc
@@ -132,9 +133,16 @@ def get_v1dot0(token_info: dict, repository_name: str, commit_id: str):
 
 def post_v1dot0(token_info: dict, repository_name: str, commit: dict):
     user = get_user_from_token_info(token_info)
-    commit_id = misc.handle_incoming_commit(user, repository_name, commit)
-    return {
-        "response": {
-            "commit_id": commit_id
-        }
-    }, 200
+    temp_id = str(uuid.uuid4())
+    misc.commit_requests_queue.put(misc.CommitRequest(temp_id, user.user_id, repository_name, commit))
+    while True:
+        try:
+            response: misc.CommitResponse = misc.commit_responses_queue.get()
+
+            if response.temp_id != temp_id:
+                misc.commit_responses_queue.put(response)
+                continue
+
+            return response.response
+        except:
+            return None

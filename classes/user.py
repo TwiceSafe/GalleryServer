@@ -46,7 +46,71 @@ class User(misc.Base):
             return None
         return open(head_path, "r").read()
 
-    def add_commit(self, repository_name: str, commit: dict):
+    def unsafe_set_head(self, repository_name, commit_id):
+        folder_path = get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name
+        head_path = folder_path + "/HEAD"
+        Path(folder_path).mkdir(parents=True, exist_ok=True)
+        f = open(head_path, "w")
+        f.write(commit_id)
+        f.flush()
+        f.close()
+
+    def add_commit(self, repository_name: str, commit: dict) -> tuple[dict, int]:
+        if self.get_head(repository_name) != commit.get("parent", None):
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "head_mismatch",
+                    "description": "Commit's parent commit is not the last (or head) commit of this repository."
+                }
+            }, 400
+
+        if commit.get("type", None) is None:
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "no_event_type",
+                    "description": "As a part of specification, all events have to have a type."
+                }
+            }, 400
+
+        if commit.get("data", None) is None:
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "no_event_data",
+                    "description": "As a part of specification, all events have to have 'data' key. It can be empty (no key-value pairs) (it's up to overlying application specification), but it still have to be present."
+                }
+            }, 400
+
+        if commit.get("v", None) is None:
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "no_event_version",
+                    "description": "As a part of specification, all event have to have 'v' key, which stands for event version. This version is up to overlying application specification, but it still have to be present."
+                }
+            }, 400
+
+        if not((type(commit["v"]) is str) or (type(commit["v"]) is int)):
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "event_version_is_not_a_string",
+                    "description": "As a part of specification, version of event have to be string or integer."
+                }
+            }, 400
+
+        commit_id = self.unsafe_add_commit(repository_name, commit)
+        self.unsafe_set_head(repository_name, commit_id)
+        return {
+            "response": {
+                "commit_id": commit_id
+            }
+        }, 200
+
+
+    def unsafe_add_commit(self, repository_name: str, commit: dict) -> str:
         folder_path = get_config().data_directory + "/usercommits/v1/" + self.user_id + "/v1/" + repository_name
 
         Path(folder_path).mkdir(parents=True, exist_ok=True)

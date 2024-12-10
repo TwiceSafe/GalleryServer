@@ -177,6 +177,11 @@ def post_v1dot0(token_info: dict, chain_name: str, event: dict):
             }
         }, 400
 
+    # TODO: handle request_id: when user sends event with request_id,
+    #  which was already handled in the last 24 hours,
+    #  return server-generated event_id and even ignore non-matching last event
+    #  and contents of the event.
+
     user = get_user_from_token_info(token_info)
 
     if user.get_last_event_id(chain_name) != event.get("parent", None):

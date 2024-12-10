@@ -49,9 +49,9 @@ class User(misc.Base):
 
     def unsafe_set_last_event_id(self, chain_name, event_id):
         folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
-        head_path = folder_path + "/LAST"
+        last_event_path = folder_path + "/LAST"
         Path(folder_path).mkdir(parents=True, exist_ok=True)
-        f = open(head_path, "w")
+        f = open(last_event_path, "w")
         f.write(event_id)
         f.flush()
         f.close()

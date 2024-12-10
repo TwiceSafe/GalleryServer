@@ -1,8 +1,7 @@
 import importlib
 import os
+import re
 import time
-import uuid
-from asyncio import iscoroutine
 from multiprocessing import Queue
 from pathlib import Path
 from typing import Self
@@ -18,6 +17,20 @@ API_VERSIONS = ["v1.0"]
 
 def current_timestamp() -> int:
     return int(time.time())
+
+
+UUID_PATTERN = re.compile(r'^[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}$')
+
+
+def check_uuid(uuid_str: str) -> bool:
+    if len(uuid_str) != 36: return False
+    return bool(UUID_PATTERN.match(uuid_str.lower()))
+
+def check_chain_name(chain_name: str) -> bool:
+    if not chain_name.islower(): return False
+    if len(chain_name) > 32: return False
+    if not chain_name.isalpha(): return False
+    return True
 
 
 Base: DeclarativeBase = declarative_base()
@@ -77,9 +90,9 @@ class AddEventRequest:
         self.event = event
 
 class AddEventResponse:
-    def __init__(self, temp_id: str, response: tuple[dict, int]):
+    def __init__(self, temp_id: str, event_id: str):
         self.temp_id = temp_id
-        self.response = response
+        self.event_id = event_id
 
 
 ERROR_RESPONSE = {

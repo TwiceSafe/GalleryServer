@@ -110,6 +110,24 @@ spec_paths = {
 
 
 def get_v1dot0(token_info: dict, chain_name: str, event_id: str):
+    if not misc.check_chain_name(chain_name):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "malformed_chain_name",
+                "description": "As a part of specification, chain name should be lowercase alpha string (only letters) with maximum length of 32."
+            }
+        }, 400
+
+    if not misc.check_uuid(event_id):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "malformed_event_id",
+                "description": "As a part of specification, Event ID should be UUID."
+            }
+        }, 400
+
     user = get_user_from_token_info(token_info)
     Path(get_config().data_directory + "/userevents/v1/" + user.user_id + "/v1/" + chain_name).mkdir(
         parents=True, exist_ok=True)
@@ -132,7 +150,80 @@ def get_v1dot0(token_info: dict, chain_name: str, event_id: str):
 
 
 def post_v1dot0(token_info: dict, chain_name: str, event: dict):
+    if not misc.check_chain_name(chain_name):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "malformed_chain_name",
+                "description": "As a part of specification, chain name should be lowercase alpha string (only letters) with maximum length of 32."
+            }
+        }, 400
+
+    if event.get("request_id", None) is None:
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "no_request_id",
+                "description": "As a part of specification, the body of POST request must have 'request_id' parameter."
+            }
+        }, 400
+
+    if not misc.check_uuid(event["request_id"]):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "malformed_request_id",
+                "description": "As a part of specification, the 'request_id' parameter must be UUID."
+            }
+        }, 400
+
     user = get_user_from_token_info(token_info)
+
+    if user.get_last_event_id(chain_name) != event.get("parent", None):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "parent_mismatch",
+                "description": "Event's parent event is not the last event of this chain."
+            }
+        }, 400
+
+    if event.get("type", None) is None:
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "no_event_type",
+                "description": "As a part of specification, all events have to have a type."
+            }
+        }, 400
+
+    if event.get("data", None) is None:
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "no_event_data",
+                "description": "As a part of specification, all events have to have 'data' key. It can be empty (no key-value pairs) (it's up to overlying application specification), but it still have to be present."
+            }
+        }, 400
+
+    if event.get("v", None) is None:
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "no_event_version",
+                "description": "As a part of specification, all event have to have 'v' key, which stands for event version. This version is up to overlying application specification, but it still have to be present."
+            }
+        }, 400
+
+    if not((type(event["v"]) is str) or (type(event["v"]) is int)):
+        return {
+            "error": {
+                "code": 1,  # TODO: create code
+                "name": "event_version_is_not_a_string",
+                "description": "As a part of specification, version of event have to be string or integer."
+            }
+        }, 400
+
     temp_id = str(uuid.uuid4())
     misc.add_event_requests_queue.put(misc.AddEventRequest(temp_id, user.user_id, chain_name, event))
     while True:
@@ -143,6 +234,16 @@ def post_v1dot0(token_info: dict, chain_name: str, event: dict):
                 misc.add_event_responses_queue.put(response)
                 continue
 
-            return response.response
+            return {
+                "response": {
+                    "event_id": response.event_id
+                }
+            }, 200
         except:
-            return None
+            return {
+                "error": {
+                    "code": 1,  # TODO: create code
+                    "name": "server_error",
+                    "description": "Server could not add event to the chain. Please retry."
+                }
+            }, 500

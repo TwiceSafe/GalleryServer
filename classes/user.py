@@ -40,11 +40,12 @@ class User(misc.Base):
 
     def get_last_event_id(self, chain_name):
         folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
-        head_path = folder_path+"/LAST"
+        last_event_path = folder_path+"/LAST"
         Path(folder_path).mkdir(parents=True, exist_ok=True)
-        if not Path(head_path).is_file():
+        if not Path(last_event_path).is_file():
             return None
-        return open(head_path, "r").read()
+        with open(last_event_path, "r") as f:  # TODO: synchronously read this file
+            return f.read()
 
     def unsafe_set_last_event_id(self, chain_name, event_id):
         folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
@@ -55,60 +56,10 @@ class User(misc.Base):
         f.flush()
         f.close()
 
-    def add_event(self, chain_name: str, event: dict) -> tuple[dict, int]:
-        if self.get_last_event_id(chain_name) != event.get("parent", None):
-            return {
-                "error": {
-                    "code": 1,  # TODO: create code
-                    "name": "parent_mismatch",
-                    "description": "Event's parent event is not the last event of this chain."
-                }
-            }, 400
-
-        if event.get("type", None) is None:
-            return {
-                "error": {
-                    "code": 1,  # TODO: create code
-                    "name": "no_event_type",
-                    "description": "As a part of specification, all events have to have a type."
-                }
-            }, 400
-
-        if event.get("data", None) is None:
-            return {
-                "error": {
-                    "code": 1,  # TODO: create code
-                    "name": "no_event_data",
-                    "description": "As a part of specification, all events have to have 'data' key. It can be empty (no key-value pairs) (it's up to overlying application specification), but it still have to be present."
-                }
-            }, 400
-
-        if event.get("v", None) is None:
-            return {
-                "error": {
-                    "code": 1,  # TODO: create code
-                    "name": "no_event_version",
-                    "description": "As a part of specification, all event have to have 'v' key, which stands for event version. This version is up to overlying application specification, but it still have to be present."
-                }
-            }, 400
-
-        if not((type(event["v"]) is str) or (type(event["v"]) is int)):
-            return {
-                "error": {
-                    "code": 1,  # TODO: create code
-                    "name": "event_version_is_not_a_string",
-                    "description": "As a part of specification, version of event have to be string or integer."
-                }
-            }, 400
-
+    def add_event(self, chain_name: str, event: dict) -> str:
         event_id = self.unsafe_add_event(chain_name, event)
         self.unsafe_set_last_event_id(chain_name, event_id)
-        return {
-            "response": {
-                "event_id": event_id
-            }
-        }, 200
-
+        return event_id
 
     def unsafe_add_event(self, chain_name: str, event: dict) -> str:
         folder_path = get_config().data_directory + "/userevents/v1/" + self.user_id + "/v1/" + chain_name
